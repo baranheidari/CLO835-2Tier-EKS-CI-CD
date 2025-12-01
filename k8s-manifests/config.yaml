@@ -1,0 +1,35 @@
+# --- 1. Kubernetes Secret for Database Credentials ---
+# Stores the DB user and password as base64 encoded strings.
+# Kubernetes will decrypt this and inject it into the MySQL Deployment.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-credentials
+  namespace: final
+type: Opaque
+data:
+  # Base64 encoding:
+  # DB_USER=root  -> Base64: cm9vdA==
+  # DB_PASSWORD=password -> Base64: cGFzc3dvcmQ=
+  username: cm9vdA==   # This is 'root' encoded in Base64
+  password: cGFzc3dvcmQ= # This is 'password' encoded in Base64
+---
+# --- 2. Kubernetes ConfigMap for Application Settings ---
+# Stores non-sensitive settings that the Flask app needs.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: final 
+data:
+  # 1. Required Background Image URL (Public S3 URL from Phase 3, Step 1)
+  BACKGROUND_IMAGE_URL: "https://clo835-final-project-group6.s3.us-east-1.amazonaws.com/background-image.png"
+  
+  # 2. Required Name for the Header
+  MY_NAME: "Group - 6 CLO-835"
+  
+  # 3. MySQL Database Name (Must match the DB we create later)
+  DATABASE: "employees"
+  
+  # 4. MySQL Port (Standard port)
+  DBPORT: "3306"
