@@ -1,0 +1,28 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: clo835-project-cluster  # Project required cluster name
+  region: "us-east-1"
+  version: "1.33"            
+
+# Define the availability zones explicitly to avoid potential VPC issues
+availabilityZones: ["us-east-1a", "us-east-1b"] 
+
+iam:
+  serviceRoleARN: arn:aws:iam::058264412508:role/LabRole
+
+# Define the managed node groups (Worker Nodes)
+managedNodeGroups:
+- name: ng-flask-workers
+  desiredCapacity: 2              # REQUIRED: 2 worker nodes
+  instanceType: t3.medium         # Using t3.medium for stability
+  minSize: 1
+  maxSize: 3
+  volumeSize: 40
+  # SSH access is often restricted in labs, enabling SSM is safer.
+  ssh:
+    allow: true
+  
+  iam:
+    instanceRoleARN: arn:aws:iam::058264412508:role/LabRole

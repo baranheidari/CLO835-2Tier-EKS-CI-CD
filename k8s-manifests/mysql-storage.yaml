@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim # This is the request for storage
+metadata:
+  name: mysql-pvc
+  namespace: final
+spec:
+  # The assignment requires the use of the default gp2 StorageClass, 
+  # which Kubernetes handles automatically in EKS.
+  # We omit storageClassName to use the default EKS provisioner.
+  
+  accessModes:
+    - ReadWriteOnce         # REQUIRED: Can only be mounted by one node at a time
+  resources:
+    requests:
+      storage: 2Gi          # REQUIRED: Request 2 Gigabytes of storage

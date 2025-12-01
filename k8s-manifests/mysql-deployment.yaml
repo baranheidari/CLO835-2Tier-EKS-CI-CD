@@ -1,0 +1,61 @@
+# --- 1. MySQL Deployment ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+  namespace: final
+  labels:
+    app: mysql
+spec:
+  replicas: 1 # REQUIRED: Run only one instance of the database
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0 # Use a stable official MySQL image
+        ports:
+        - containerPort: 3306
+        env:
+          # Use values from the Secret (DB_USER/DB_PASSWORD)
+        - name: MYSQL_ROOT_PASSWORD # MySQL image uses this variable name
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: password 
+          # Use values from the ConfigMap (DB_NAME)
+        - name: MYSQL_DATABASE # MySQL image uses this variable name
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DATABASE
+        
+        # Attach the Persistent Volume Claim
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql # Default location where MySQL stores data
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc # References the PVC defined in mysql-storage.yaml
+---
+# --- 2. MySQL Internal Service (ClusterIP) ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: final
+spec:
+  # REQUIRED: Choose ClusterIP for internal, stable communication (App -> DB)
+  type: ClusterIP 
+  selector:
+    app: mysql
+  ports:
+  - protocol: TCP
+    port: 3306            # Service port
+    targetPort: 3306      # Container port (must match the containerPort above)
