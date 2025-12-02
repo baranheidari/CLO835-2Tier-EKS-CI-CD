@@ -8,7 +8,7 @@ on:
   
 env:
   # The ECR Repository URI (YOUR ACCOUNT ID/REPOSITORY NAME)
-  ECR_REPOSITORY: "058264412508.dkr.ecr.us-east-1.amazonaws.com/clo835-flask-app"
+  ECR_REPOSITORY: "clo835-flask-app"
   AWS_REGION: ${{ secrets.AWS_REGION }}
 
 jobs:
