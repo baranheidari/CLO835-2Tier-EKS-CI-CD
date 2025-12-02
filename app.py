@@ -7,7 +7,7 @@ import requests
 
 app = Flask(__name__)
 
-# --- CONFIGURATION FROM ENV VARIABLES ---
+# --- CONFIGURATION ---
 DBHOST = os.environ.get("DBHOST") or "localhost"
 DBUSER = os.environ.get("DBUSER") or "root"
 DBPWD = os.environ.get("DBPWD") or "password"
@@ -18,7 +18,7 @@ DBPORT = int(os.environ.get("DBPORT") or "3306")
 BACKGROUND_IMAGE_URL = os.environ.get("BACKGROUND_IMAGE_URL")
 MY_NAME = os.environ.get("MY_NAME") or "Group - 6 CLO-835"
 
-# --- DATABASE CONNECTION (ENABLED FOR PROD) ---
+# --- DATABASE CONNECTION ---
 db_conn = connections.Connection(
     host= DBHOST,
     port=DBPORT,
@@ -46,10 +46,27 @@ def download_background_image():
             if response.status_code == 200:
                 with open('static/background.jpg', 'wb') as f:
                     f.write(response.content)
-            else:
-                print(f"Failed to download image. Status: {response.status_code}")
         except Exception as e:
             print(f"Error: {e}")
+
+# --- NEW: FUNCTION TO CREATE TABLE ---
+def init_db():
+    create_table_sql = """
+    CREATE TABLE IF NOT EXISTS employee (
+        emp_id VARCHAR(20),
+        first_name VARCHAR(20),
+        last_name VARCHAR(20),
+        primary_skill VARCHAR(20),
+        location VARCHAR(20)
+    )
+    """
+    cursor = db_conn.cursor()
+    try:
+        cursor.execute(create_table_sql)
+        db_conn.commit()
+        print("Database table checked/created successfully.")
+    finally:
+        cursor.close()
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
@@ -66,10 +83,7 @@ def AddEmp():
     last_name = request.form['last_name']
     primary_skill = request.form['primary_skill']
     location = request.form['location']
-
     insert_sql = "INSERT INTO employee VALUES (%s, %s, %s, %s, %s)"
-    
-    # DATABASE LOGIC (ENABLED)
     cursor = db_conn.cursor()
     try:
         cursor.execute(insert_sql,(emp_id, first_name, last_name, primary_skill, location))
@@ -77,7 +91,6 @@ def AddEmp():
         emp_name = "" + first_name + " " + last_name
     finally:
         cursor.close()
-
     return render_template('addempoutput.html', name=emp_name, color=color_codes[COLOR], my_name=MY_NAME)
 
 @app.route("/getemp", methods=['GET', 'POST'])
@@ -89,8 +102,6 @@ def FetchData():
     emp_id = request.form['emp_id']
     output = {}
     select_sql = "SELECT emp_id, first_name, last_name, primary_skill, location from employee where emp_id=%s"
-    
-    # DATABASE LOGIC (ENABLED)
     cursor = db_conn.cursor()
     try:
         cursor.execute(select_sql,(emp_id))
@@ -105,10 +116,11 @@ def FetchData():
         print(e)
     finally:
         cursor.close()
-
     return render_template("getempoutput.html", id=output.get("emp_id"), fname=output.get("first_name"),
                            lname=output.get("last_name"), interest=output.get("primary_skills"), location=output.get("location"), color=color_codes[COLOR], my_name=MY_NAME)
 
 if __name__ == '__main__':
     download_background_image()
+    init_db() # <--- Run the table creation logic on startup
     app.run(host='0.0.0.0',port=81,debug=True)
+
