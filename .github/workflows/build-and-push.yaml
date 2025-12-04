@@ -37,7 +37,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: latest # Tags the image as 'latest'
         run: |
-          # The full image name: 058264412508.dkr.ecr.us-east-1.amazonaws.com/clo835-flask-app:latest
+          # The full image name: 533267343588.dkr.ecr.us-east-1.amazonaws.com/clo835-flask-app:latest
           FULL_IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           
           # Build the image using the Dockerfile we created
